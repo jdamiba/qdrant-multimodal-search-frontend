@@ -665,6 +665,96 @@ _****_
 
 ---
 
+_**User**_
+
+do i need to update my next.config so that I can interact with my backend server at NEXT_PUBLIC_API_URL=https://qdrant-multimodal-search-backend-6pr3.onrender.com/
+
+---
+
+_**Assistant**_
+
+Yes, you'll need to update the Next.js config to allow requests to your production backend domain. Let's add CORS configuration using the `async headers()` configuration:
+
+---
+
+_****_
+
+```diff
+  
+  const nextConfig: NextConfig = {
+-   /* config options here */
++   async headers() {
++     return [
++       {
++         // Allow requests to your production backend
++         source: "/api/:path*",
++         headers: [
++           { key: "Access-Control-Allow-Credentials", value: "true" },
++           { key: "Access-Control-Allow-Origin", value: "https://qdrant-multimodal-search-backend-6pr3.onrender.com" },
++           { key: "Access-Control-Allow-Methods", value: "GET,DELETE,PATCH,POST,PUT" },
++           { key: "Access-Control-Allow-Headers", value: "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" },
++         ],
++       },
++     ];
++   },
++   images: {
++     remotePatterns: [
++       {
++         protocol: 'https',
++         hostname: 'qdrant-multimodal-search-backend-6pr3.onrender.com',
++         port: '',
++         pathname: '/**',
++       },
++     ],
++   },
+  };
+  
+```
+
+---
+
+_****_
+
+I've made two important updates to your `next.config.ts`:
+
+1. Added CORS headers to allow cross-origin requests to your production backend
+2. Added `images.remotePatterns` configuration to allow Next.js to optimize and serve images from your production domain
+
+Also, I notice that your production URL has a trailing slash. Let's clean up the API route to handle this properly:
+
+---
+
+_****_
+
+```diff
+  }
+  
+- const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
++ // Remove trailing slash if present
++ const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/$/, "");
+  
+  export async function POST(request: Request) {
+```
+
+---
+
+_****_
+
+These changes will:
+
+1. Allow your frontend to make requests to the production backend
+2. Enable Next.js to properly handle and optimize images from your production domain
+3. Properly handle the API URL whether it has a trailing slash or not
+
+Make sure to:
+1. Deploy these changes to your production environment
+2. Test both local development (with `npm run dev`) and production build (with `npm run build && npm run start`) to ensure everything works in both environments
+3. Verify that CORS is properly configured on your backend server as well to accept requests from your frontend domain
+
+Would you like me to help you with anything else?
+
+---
+
 
 
 ---

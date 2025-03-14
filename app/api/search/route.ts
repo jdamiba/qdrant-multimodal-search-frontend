@@ -7,7 +7,10 @@ interface SearchResponse {
   }>;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// Remove trailing slash if present
+const API_URL = (
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+).replace(/\/$/, "");
 
 export async function POST(request: Request) {
   try {
