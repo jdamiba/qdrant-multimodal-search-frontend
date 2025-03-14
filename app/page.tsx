@@ -35,6 +35,7 @@ export default function Home() {
       const data = await response.json();
       setResults(data.results || []);
     } catch (err) {
+      console.error("Search error:", err);
       setError("Failed to perform search. Please try again.");
     } finally {
       setLoading(false);
