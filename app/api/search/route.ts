@@ -12,9 +12,12 @@ const API_URL = (
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 ).replace(/\/$/, "");
 
+console.log("Attempting to connect to:", API_URL);
+
 export async function POST(request: Request) {
   try {
     const { query } = await request.json();
+    console.log("Search query:", query);
 
     const response = await fetch(`${API_URL}/search`, {
       method: "POST",
@@ -28,15 +31,27 @@ export async function POST(request: Request) {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to fetch from search server");
+      const errorText = await response.text();
+      console.error("Server response:", {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText,
+      });
+      throw new Error(`Server responded with ${response.status}: ${errorText}`);
     }
 
     const data = (await response.json()) as SearchResponse;
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Search error:", error);
+    console.error("Search error details:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      url: `${API_URL}/search`,
+    });
     return NextResponse.json(
-      { error: "Failed to perform search" },
+      {
+        error:
+          error instanceof Error ? error.message : "Failed to perform search",
+      },
       { status: 500 }
     );
   }

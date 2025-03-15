@@ -755,6 +755,116 @@ Would you like me to help you with anything else?
 
 ---
 
+_**User**_
+
+For the code present, we get this error:
+```
+Object is possibly 'undefined'.
+```
+How can I resolve this? If you propose a fix, please make it concise.
+
+---
+
+_**Assistant**_
+
+Let's fix the undefined error by adding the fallback value before calling replace:
+
+---
+
+_****_
+
+```diff
+  
+  // Remove trailing slash if present
+- const API_URL = (
+-   process.env.NEXT_PUBLIC_API_URL
+- ).replace(/\/$/, "");
++ const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/$/, "");
+  
+  export async function POST(request: Request) {
+```
+
+---
+
+_****_
+
+This fixes the TypeScript error by providing a default value in case `NEXT_PUBLIC_API_URL` is undefined.
+
+---
+
+_**User**_
+
+Search error: Error: Failed to fetch from search server
+
+---
+
+_**Assistant**_
+
+Let's add more detailed error logging to understand what's going wrong with the request. I'll update the error handling to show more information:
+
+---
+
+_****_
+
+```diff
+  ).replace(/\/$/, "");
+  
+- console.log(API_URL);
++ console.log("Attempting to connect to:", API_URL);
+  
+  export async function POST(request: Request) {
+    try {
+      const { query } = await request.json();
++     console.log("Search query:", query);
+  
+      const response = await fetch(`${API_URL}/search`, {
+  
+      if (!response.ok) {
+-       throw new Error("Failed to fetch from search server");
++       const errorText = await response.text();
++       console.error("Server response:", {
++         status: response.status,
++         statusText: response.statusText,
++         body: errorText,
++       });
++       throw new Error(`Server responded with ${response.status}: ${errorText}`);
+      }
+  
+      const data = (await response.json()) as SearchResponse;
+      return NextResponse.json(data);
+    } catch (error) {
+-     console.error("Search error:", error);
++     console.error("Search error details:", {
++       message: error instanceof Error ? error.message : "Unknown error",
++       url: `${API_URL}/search`,
++     });
+      return NextResponse.json(
+-       { error: "Failed to perform search" },
++       { error: error instanceof Error ? error.message : "Failed to perform search" },
+        { status: 500 }
+      );
+```
+
+---
+
+_****_
+
+This enhanced error logging will help us understand:
+1. The exact URL being used
+2. The search query being sent
+3. The server's response status and body
+4. Any network or other errors that occur
+
+Try making another search request and check your server logs (both frontend and backend) to see the detailed error information. This will help us identify if it's a:
+1. CORS issue
+2. Network connectivity problem
+3. Server error
+4. Malformed request
+
+Once you see the detailed error, please share it and I can help you fix the specific issue.
+
+---
+
 
 
 ---
